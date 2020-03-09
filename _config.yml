@@ -1,4 +1,4 @@
-title:              Clean Blog
+title:              Yeongseon Blog
 email:              yeongseon.choe@gmail.com
 description:        A Blog Theme by Start Bootstrap
 author:             Yeongseon Choe
@@ -12,7 +12,7 @@ facebook_username:  yeongseonchoe
 linkedin_username:  yeongseonchoe 
 
 # Add your google-analytics ID here to activate google analytics
-google_analytics:   UA-XXXXXXXXX-X # out your google-analytics code
+google_analytics:   UA-160048166-1 # out your google-analytics code
 
 # Build settings
 markdown:           kramdown
