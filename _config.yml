@@ -2,7 +2,7 @@ title:              Clean Blog
 email:              yeongseon.choe@gmail.com
 description:        A Blog Theme by Start Bootstrap
 author:             Yeongseon Choe
-baseurl:            "/startbootstrap-clean-blog-jekyll"
+baseurl:            ""
 url:                "https://yeongseon.github.io"
 
 # Social Profiles
