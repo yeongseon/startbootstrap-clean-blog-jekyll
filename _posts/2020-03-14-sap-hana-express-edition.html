@@ -7,6 +7,99 @@ background: '/img/posts/20200314/01.jpg'
 comments: true
 ---
 
+<h1 id="SAP HANA, express edition docker 설치하기">SAP HANA, express edition docker 설치하기</h1>
+<h2 id="들어가며…">들어가며…</h2>
+<p>SAP HANA, express edition은 무료로 SAP HANA를 사용해 볼 수 있습니다. <a href="https://developers.sap.com/topics/sap-hana.html">SAP 개발자 센터</a> 를 통해서 바이너리를 다운 받아 설치하는 방법과 <a href="https://hub.docker.com/_/sap-hana-express-edition">도커 허브</a>에서 도커파일을 다운 받아 실행 하는 방법이 있습니다. </p>
+
+
+<h2 id="SAP HANA, express edition docker 설치">SAP HANA, express edition docker 설치</h2>
+<h3 id="Docker login">Docker login</h3>
+
+<pre><code class='code-multiline' lang='bash'>$ <span class="sf_code_function">sudo</span> docker login</code></pre>
+<p><br></p>
+<h3 id="SAP HANA express edition 다운받기">SAP HANA express edition 다운받기</h3>
+<ol start="1"><li><a href="https://hub.docker.com/">Docker Hub</a> 에서  HANA 검색
+</li></ol>
+
+<p><img src='/img/posts/20200314/02.jpg'></p>
+
+<ol start="2"><li><code class='code-inline'>SAP HANA, express edition (database services)</code>  선택
+</li><li><code class='code-inline'>Setup Instruction</code> 버튼 클릭
+</li><li>도커 이미지 주소 복사 후 <code class='code-inline'>docker pull</code>  실행
+</li></ol>
+
+<pre><code class='code-multiline' lang='bash'>$ <span class="sf_code_function">sudo</span> docker pull store/saplabs/hanaexpress:2.00.045.00.20200121.1 </code></pre>
+<p><br></p>
+<ol start="5"><li><code class='code-inline'>doker pull</code>이 완료되면 <code class='code-inline'>docker images</code>로 도커 이미지 확인
+</li></ol>
+
+<pre><code class='code-multiline' lang='bash'>$ <span class="sf_code_function">sudo</span> docker images
+REPOSITORY                                TAG                      IMAGE ID            CREATED             SIZE
+store/saplabs/hanaexpress                 2.00.045.00.20200121.1   aeb6e1b699dc        7 weeks ago         3.58GB</code></pre>
+<p><br></p>
+<h3 id="sysctl.conf 파일 수정">sysctl.conf 파일 수정</h3>
+
+<pre><code class='code-multiline' lang='bash'>fs.file-max<span class="sf_code_operator">=</span>20000000
+fs.aio-max-nr<span class="sf_code_operator">=</span>262144
+vm.memory_failure_early_kill<span class="sf_code_operator">=</span>1
+vm.max_map_count<span class="sf_code_operator">=</span>135217728
+net.ipv4.ip_local_port_range<span class="sf_code_operator">=</span>40000 60999</code></pre>
+<p><br></p>
+
+
+<h3 id="SAP HANA, express edition 도커에서 사용하기 위한 디렉토리 생성">SAP HANA, express edition 도커에서 사용하기 위한 디렉토리 생성</h3>
+
+<pre><code class='code-multiline' lang='bash'><span class="sf_code_function">mkdir</span> -p /data/<span class="sf_code_operator">&lt;</span>directory_name<span class="sf_code_operator">&gt;</span>
+<span class="sf_code_function">chown</span> <span class="sf_code_operator">&lt;</span>hxeadm userID or name<span class="sf_code_operator">&gt;</span>:<span class="sf_code_operator">&lt;</span>sapsys groupID or name<span class="sf_code_operator">&gt;</span> /data/<span class="sf_code_operator">&lt;</span>directory_name<span class="sf_code_operator">&gt;</span></code></pre>
+<p><br></p>
+<p>예)</p>
+<pre><code class='code-multiline' lang='bash'><span class="sf_code_function">mkdir</span> -p /data/express_edition
+<span class="sf_code_function">chown</span> 12000:79 /data/express_edition</code></pre>
+<p><br></p>
+<h3 id="비밀번호 설정하기">비밀번호 설정하기</h3>
+
+<p>HANA 컨테이너를 실행하기 위해서는 비밀번호를 미리 설정해야 합니다. 도커 실행시에 비밀번호를 지정해주어야 하기 때문입니다.</p>
+<p>비밀번호는 json 파일에 저장해야 합니다. 이 파일은 로컬에 위치하거나 URL로 접근 가능한 곳에 위치해야 합니다. </p>
+
+<ol start="1"><li>로컬에 json파일 생성하는 방법
+</li><li>URL로 접근가능한 json파일 생성하는 방법
+</li></ol>
+
+<h3 id="도커 실행하기">도커 실행하기</h3>
+
+<p>다음 커맨드로 HANA express edition 도커를 실행한다.  </p>
+
+<pre><code class='code-multiline' lang='bash'><span class="sf_code_function">bash</span>
+<span class="sf_code_function">sudo</span> docker run -p 39013:39013 -p 39017:39017 -p 39041-39045:39041-39045 -p 1128-1129:1128-1129 -p 59013-59014:59013-59014 -v /data/<span class="sf_code_operator">&lt;</span>directory_name<span class="sf_code_operator">&gt;</span>:/hana/mounts \
+--ulimit nofile<span class="sf_code_operator">=</span>1048576:1048576 \
+--sysctl kernel.shmmax<span class="sf_code_operator">=</span>1073741824 \
+--sysctl net.ipv4.ip_local_port_range<span class="sf_code_operator">=</span><span class="sf_code_string">'40000 60999'</span> \
+--sysctl kernel.shmmni<span class="sf_code_operator">=</span>524288 \
+--sysctl kernel.shmall<span class="sf_code_operator">=</span>8388608 \
+--name <span class="sf_code_operator">&lt;</span>container_name<span class="sf_code_operator">&gt;</span> \
+store/saplabs/hanaexpress:2.00.040.00.20190729.1 \
+--passwords-url <span class="sf_code_operator">&lt;</span>file://<span class="sf_code_operator">&lt;</span>path_to_json_file<span class="sf_code_operator">&gt;</span> OR http/https://<span class="sf_code_operator">&lt;</span>url_to_json_file<span class="sf_code_operator">&gt;&gt;</span> \
+--agree-to-sap-license</code></pre>
+<p><br></p>
+<p>예)</p>
+<pre><code class='code-multiline' lang='bash'><span class="sf_code_function">sudo</span> docker run -p 39013:39013 -p 39017:39017 -p 39041-39045:39041-39045 -p 1128-1129:1128-1129 -p 59013-59014:59013-59014 -v /data/express_edition:/hana/mounts \
+—ulimit nofile<span class="sf_code_operator">=</span>1048576:1048576 \
+—sysctl kernel.shmmax<span class="sf_code_operator">=</span>1073741824 \
+—sysctl net.ipv4.ip_local_port_range<span class="sf_code_operator">=</span>'40000 60999’ \
+—sysctl kernel.shmmni<span class="sf_code_operator">=</span>524288 \
+—sysctl kernel.shmall<span class="sf_code_operator">=</span>8388608 \
+--name express_edition \
+store/saplabs/hanaexpress:2.00.045.00.20200121.1 \
+—passwords-url https://raw.githubusercontent.com/yeongseon/temp/master/password.json \
+—agree-to-sap-license</code></pre>
+<p><br></p>
+
+<p>위의 커맨드를 실행하면 잠시 후에 </p>
+
+<p>[2] </p>
+
+
+
 {% if page.comments != false %}
 {% include disqus_comments.html %}
 {% endif %}  
