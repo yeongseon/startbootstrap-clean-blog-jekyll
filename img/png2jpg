@@ -1,0 +1,1 @@
+sips -s format jpeg *.* --out .
